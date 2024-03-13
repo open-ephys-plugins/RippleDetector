@@ -92,7 +92,7 @@ RippleDetector::RippleDetector() : GenericProcessor("Ripple Detector")
 		Parameter::STREAM_SCOPE,
 		"mov_input",
 		"The continuous channel to analyze",
-		1
+		3
 	);
 
 	addIntParameter(
@@ -187,12 +187,15 @@ void RippleDetector::updateSettings()
 		parameterValueChanged(stream->getParameter("min_time_mov"));
 
 		//Add AUX channels to use for accelerometer data
-		settings[stream->getStreamId()]->auxChannelIndices.clear();
+		settings[stream->getStreamId()]->movementChannels = { 1 };
+		//No longer restricting movement input to AUX channels */
+		/*
 		for (auto& channel : stream->getContinuousChannels())
 		{
 			if (channel->getChannelType() == ContinuousChannel::Type::AUX)
 				settings[stream->getStreamId()]->auxChannelIndices.push_back(channel->getLocalIndex());
 		}
+		*/
 
 		//Add event channels to use for detection data
 		EventChannel::Settings s {
@@ -263,22 +266,51 @@ void RippleDetector::parameterValueChanged(Parameter* param)
 	{
 		settings[streamId]->movSwitch = ((CategoricalParameter*)param)->getValueAsString();
 
-		//Check if ACC was chosen and how many AUX channels are available
+		int movementChannelCount = settings[streamId]->movementChannels.size();
+
 		if (settings[streamId]->movSwitch.equalsIgnoreCase("ACC"))
 		{
-			int auxChannelCount = settings[streamId]->auxChannelIndices.size();
-			if (!auxChannelCount)
+			String msg;
+			if (!movementChannelCount)
 			{
 				settings[streamId]->movSwitch = "OFF";
 				((CategoricalParameter*)param)->setNextValue("OFF");
-				AlertWindow::showMessageBoxAsync(AlertWindow::WarningIcon,
-                "WARNING", "No AUX channels were detected in this stream to compute acceleration. Switching to OFF.");
+				msg += "Movement detection via acceleration magnitude requires at least one input channel. ";
+				msg += "Add up to 3 channels using the mov_input button. ";
+				msg += "Switching to OFF until then.";
+				AlertWindow::showMessageBoxAsync(AlertWindow::WarningIcon, "WARNING", msg);
 			}
 			else
 			{
-				String msg = String(auxChannelCount) + " aux channels were detected in this stream. ";
-				msg += "All available channels will be used to compute the acceleration magnitude.";
+				msg += String(movementChannelCount);
+				msg += movementChannelCount > 1 ? " channels " : " channel ";
+				msg += " currently selected for movement detection via acceleration magnitude (ACC)";
+				msg += "\n\n";
+				msg += "You may use up to 3 channels to compute acceleration magnitude.\n\n";
+				msg += "Use the 'mov_input' button to update selected channels.";
 				AlertWindow::showMessageBoxAsync(AlertWindow::WarningIcon, "INFO", msg);
+			}
+		}
+		else if (settings[streamId]->movSwitch.equalsIgnoreCase("EMG"))
+		{
+			String msg;
+			if (settings[streamId]->movementChannels.size() == 0)
+			{
+				settings[streamId]->movSwitch = "OFF";
+				((CategoricalParameter*)param)->setNextValue("OFF");
+				msg += "Movement detection via EMG requires exactly one input channel. ";
+				msg += "Add a channel using the mov_input button. ";
+				msg += "Switching to OFF until then.";
+				AlertWindow::showMessageBoxAsync(AlertWindow::WarningIcon, "WARNING", msg);
+			}
+			else if (settings[streamId]->movementChannels.size() > 1)
+			{
+				settings[streamId]->movSwitch = "OFF";
+				((CategoricalParameter*)param)->setNextValue("OFF");
+				msg += "Movement detection via EMG requires exactly one input channel. ";
+				msg += "You currently have more than one selected. Update selected channels using the mov_input button.";
+				msg += "Switching to OFF until then.";
+				AlertWindow::showMessageBoxAsync(AlertWindow::WarningIcon, "WARNING", msg);
 			}
 		}
 		settings[streamId]->movSwitchEnabled = !(settings[streamId]->movSwitch).equalsIgnoreCase("OFF");
@@ -286,17 +318,18 @@ void RippleDetector::parameterValueChanged(Parameter* param)
 	}
 	else if (paramName.equalsIgnoreCase("mov_input"))
 	{
+		settings[streamId]->movementChannels.clear();
+
 		Array<var>* array = param->getValue().getArray();
 
 		if (array->size() > 0)
 		{
-			int localIndex = int(array->getFirst());
-			int globalIndex = getDataStream(param->getStreamId())->getContinuousChannels()[localIndex]->getGlobalIndex();
-			settings[streamId]->movementInputChannel = globalIndex;
-		}
-		else
-		{
-			settings[streamId]->movementInputChannel = -1;
+			for (int i = 0; i < array->size(); i++)
+			{
+				int localIndex = int(array->getReference(i));
+				int globalIndex = getDataStream(param->getStreamId())->getContinuousChannels()[localIndex]->getGlobalIndex();
+				settings[streamId]->movementChannels.push_back(globalIndex);
+			}
 		}
 		settings[streamId]->movChannChanged = true;
 	}
@@ -366,7 +399,7 @@ void RippleDetector::process(AudioBuffer<float>& buffer)
 				settings[streamId]->rmsSamples = numSamplesInBlock;
 
 			// Check if need to calibrate
-			if (shouldCalibrate || (settings[streamId]->movChannChanged && settings[streamId]->movementInputChannel > 0))
+			if (shouldCalibrate || (settings[streamId]->movChannChanged && settings[streamId]->movementChannels.size() > 0))
 			{
 				LOGC("Calibrating...");
 				settings[streamId]->isCalibrating = true;
@@ -390,15 +423,15 @@ void RippleDetector::process(AudioBuffer<float>& buffer)
 			{
 				if (settings[streamId]->movSwitch.equalsIgnoreCase("ACC"))
 				{
-					for (int i = 0; i < settings[streamId]->auxChannelIndices.size(); i++)
+					for (int i = 0; i < settings[streamId]->movementChannels.size(); i++)
 					{
-						accelData[i] = buffer.getReadPointer(settings[streamId]->auxChannelIndices[i], 0);
+						accelData[i] = buffer.getReadPointer(settings[streamId]->movementChannels[i], 0);
 					}
 					accMagnit = calculateAccelMod(accelData, numSamplesInBlock);
 				}
 				else //EMG
 				{
-					emgData = buffer.getReadPointer(settings[streamId]->movementInputChannel, 0);
+					emgData = buffer.getReadPointer(settings[streamId]->movementChannels[0], 0);
 				}
 			}
 
