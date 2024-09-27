@@ -74,30 +74,78 @@ RippleDetectorEditor::RippleDetectorEditor(GenericProcessor* parentNode)
     
     rippleDetector = (RippleDetector*)parentNode;
     
-	desiredWidth = 460; //Plugin's desired width`
+	desiredWidth = 450; //Plugin's desired width`
+
+    int align1 = 10;
 
 	/* Ripple Detection Settings */
-	addSelectedChannelsParameterEditor(Parameter::ParameterScope::STREAM_SCOPE, "Ripple_Input", 10, 40);
+	addSelectedChannelsParameterEditor(Parameter::ParameterScope::STREAM_SCOPE, "Ripple_Input", align1, 25);
+    ParameterEditor* rippleInput = getParameterEditor ("Ripple_Input");
+    rippleInput->setLayout (ParameterEditor::Layout::nameOnTop);
+    rippleInput->setSize (80, 34);
 
-	addComboBoxParameterEditor(Parameter::ParameterScope::STREAM_SCOPE, "Ripple_Out", 10, 70);
+	addComboBoxParameterEditor(Parameter::ParameterScope::STREAM_SCOPE, "Ripple_Out", align1, 60);
+    ParameterEditor* rippleOut = getParameterEditor ("Ripple_Out");
+    rippleOut->setLayout (ParameterEditor::Layout::nameOnTop);
+    rippleOut->setSize (80, 34);
 
+    /* Calibration Button */
+	calibrateButton = std::make_unique<UtilityButton>("CALIBRATE");
+	calibrateButton->addListener(this);
+    calibrateButton->setRadius(3.0f);
+    calibrateButton->setBounds(align1, 102, 80, 20);
+    addAndMakeVisible(calibrateButton.get());
+
+    /*
 	Parameter* param = getProcessor()->getStreamParameter("ripple_std");
-    addCustomParameterEditor(new CustomTextBoxParameterEditor(param), 95, 25);
+    addCustomParameterEditor(new CustomTextBoxParameterEditor(param), 95, 27);
 
 	param = getProcessor()->getStreamParameter("time_thresh");
-    addCustomParameterEditor(new CustomTextBoxParameterEditor(param), 95, 50);
+    addCustomParameterEditor(new CustomTextBoxParameterEditor(param), 95, 52);
 
 	param = getProcessor()->getStreamParameter("refr_time");
-    addCustomParameterEditor(new CustomTextBoxParameterEditor(param), 95, 75);
+    addCustomParameterEditor(new CustomTextBoxParameterEditor(param), 95, 77);
 
 	param = getProcessor()->getStreamParameter("rms_samples");
-    addCustomParameterEditor(new CustomTextBoxParameterEditor(param), 95, 100);
+    addCustomParameterEditor(new CustomTextBoxParameterEditor(param), 95, 102);
+    */
+
+    int align2 = 95;
+
+    addTextBoxParameterEditor(Parameter::STREAM_SCOPE, "ripple_std", align2, 29);
+    ParameterEditor* rippleStd = getParameterEditor ("ripple_std");
+    rippleStd->setSize (150, 17);
+
+    addTextBoxParameterEditor(Parameter::STREAM_SCOPE, "time_thresh", align2, 54);
+    ParameterEditor* timeThresh = getParameterEditor ("time_thresh");
+    timeThresh->setSize (150, 17);
+
+    addTextBoxParameterEditor(Parameter::STREAM_SCOPE, "refr_time", align2, 79);
+    ParameterEditor* refrTime = getParameterEditor ("refr_time");
+    refrTime->setSize (150, 17);
+
+    addTextBoxParameterEditor(Parameter::STREAM_SCOPE, "rms_samples", align2, 104);
+    ParameterEditor* rmsSamples = getParameterEditor ("rms_samples");
+    rmsSamples->setSize (150, 17);
 
 	/* EMG / ACC Movement Detection Settings */
-	addComboBoxParameterEditor(Parameter::ParameterScope::STREAM_SCOPE, "mov_detect", 230, 20);
-	addSelectedChannelsParameterEditor(Parameter::ParameterScope::STREAM_SCOPE, "Mov_Input", 230, 65);
-	addComboBoxParameterEditor(Parameter::ParameterScope::STREAM_SCOPE, "Mov_Out", 230, 85);
+    int align3 = 250;
+	addComboBoxParameterEditor(Parameter::ParameterScope::STREAM_SCOPE, "mov_detect", align3, 22);
+    ParameterEditor* movDetect = getParameterEditor ("mov_detect");
+    movDetect->setLayout (ParameterEditor::Layout::nameOnTop);
+    movDetect->setSize (90, 34);
 
+	addSelectedChannelsParameterEditor(Parameter::ParameterScope::STREAM_SCOPE, "Mov_Input", align3, 57);
+    ParameterEditor* movInput = getParameterEditor ("Mov_Input");
+    movInput->setLayout (ParameterEditor::Layout::nameOnTop);
+    movInput->setSize (90, 34);
+
+	addComboBoxParameterEditor(Parameter::ParameterScope::STREAM_SCOPE, "Mov_Out", align3, 92);
+    ParameterEditor* movOut = getParameterEditor ("Mov_Out");
+    movOut->setLayout (ParameterEditor::Layout::nameOnTop);
+    movOut->setSize (90, 34);
+
+    /*
 	param = getProcessor()->getStreamParameter("mov_std");
     addCustomParameterEditor(new CustomTextBoxParameterEditor(param), 325, 25);
 
@@ -106,14 +154,23 @@ RippleDetectorEditor::RippleDetectorEditor(GenericProcessor* parentNode)
 
 	param = getProcessor()->getStreamParameter("min_time_mov");
     addCustomParameterEditor(new CustomTextBoxParameterEditor(param), 325, 75);
+    */
 
-	/* Calibration Button */
-	calibrateButton = std::make_unique<UtilityButton>("Calibrate");
-	calibrateButton->addListener(this);
-    calibrateButton->setRadius(3.0f);
-    calibrateButton->setBounds(335, 100, 100, 25);
-    addAndMakeVisible(calibrateButton.get());
+    int align4 = 345;
+    addTextBoxParameterEditor(Parameter::STREAM_SCOPE, "mov_std", align4, 22);
+    ParameterEditor* movStd = getParameterEditor ("mov_std");
+    movStd->setLayout (ParameterEditor::Layout::nameOnTop);
+    movStd->setSize (90, 34);
 
+    addTextBoxParameterEditor(Parameter::STREAM_SCOPE, "min_time_st", align4, 57);
+    ParameterEditor* minTimeSt = getParameterEditor ("min_time_st");
+    minTimeSt->setLayout (ParameterEditor::Layout::nameOnTop);
+    minTimeSt->setSize (90, 34);
+
+    addTextBoxParameterEditor(Parameter::STREAM_SCOPE, "min_time_mov", align4, 92);
+    ParameterEditor* minTimeMov = getParameterEditor ("min_time_mov");
+    minTimeMov->setLayout (ParameterEditor::Layout::nameOnTop);
+    minTimeMov->setSize (90, 34);
 }
 
 void RippleDetectorEditor::buttonClicked(Button*)

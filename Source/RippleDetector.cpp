@@ -38,7 +38,7 @@ void RippleDetector::registerParameters()
 	addIntParameter(
 		Parameter::STREAM_SCOPE,
 		"Ripple_Out",
-		"Ripple Out",
+		"Ripple Output",
 		"TTL line on which output events will be triggered",
 		1, 		//default
 		1, 		//min
@@ -48,7 +48,7 @@ void RippleDetector::registerParameters()
 	addFloatParameter(
 		Parameter::STREAM_SCOPE,
 		"ripple_std",
-		"Ripple Standard Deviation",
+		"Ripple STDDEV",
 		"Number of RMS standard deviations above the mean to calculate the amplitude threshold",
 		"",
 		5, 	//default 
@@ -97,7 +97,7 @@ void RippleDetector::registerParameters()
 	addCategoricalParameter(
 		Parameter::STREAM_SCOPE,
 		"mov_detect",
-		"Movement Detection Mode",
+		"Movement Detect",
 		"If OFF is selected, the mechanism of event blockage based on movement detection is disabled and ripples are not silenced. \ 
 		If ACC is selected, the RMS of all auxiliary channels are used to calculate the magnitude of the acceleration vector. \
 		If EMG is selected, an input channel is designated",
@@ -108,7 +108,7 @@ void RippleDetector::registerParameters()
 	addSelectedChannelsParameter(
 		Parameter::STREAM_SCOPE,
 		"mov_input",
-		"Movement Input Chanenl Selection",
+		"Movement Input",
 		"the channel to use for movement detection (only affects EMG mode)",
 		1
 	);
@@ -116,7 +116,7 @@ void RippleDetector::registerParameters()
 	addIntParameter(
 		Parameter::STREAM_SCOPE,
 		"mov_out",
-		"Movement Output Channel Selection",
+		"Movement Output",
 		"output TTL channel that indicates the period when ripple detection is silenced by movement (OFF if events are not blocked, 1 if events are blocked).",
 		1,
 		1,
@@ -126,7 +126,7 @@ void RippleDetector::registerParameters()
 	addFloatParameter(
 		Parameter::STREAM_SCOPE,
 		"mov_std", 
-		"Movement Standard Deviation",
+		"Movement STDDEV",
 		"Number of standard deviations above the average to be the amplitude threshold for the EMG/ACC",
 		"",
 		5, 
@@ -138,9 +138,9 @@ void RippleDetector::registerParameters()
     addFloatParameter(
 		Parameter::STREAM_SCOPE,
 		"min_time_st",
-		"Minimuym Time Steady",
+		"Min Time Steady",
 		"Minimum period (in ms) of immobility (RMS below the amplitude threshold) required to enable ripple detection again after movement is detected.",
-		"",
+		"ms",
 		5000,
 		0,
 		999999,
@@ -150,9 +150,9 @@ void RippleDetector::registerParameters()
 	addFloatParameter(
 		Parameter::STREAM_SCOPE,
 		"min_time_mov",
-		"Minimum Time with Movement",
+		"Min Move Time",
 		"Minimum period (in ms) during which the RMS values of EMG/accelerometer must be above the corresponding amplitude threshold for movement detection (and ripple silencing).",
-		"",
+		"ms",
 		10,
 		0,
 		999999,
