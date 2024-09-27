@@ -94,6 +94,9 @@ public:
     
     /** Creates the custom editor for this plugin */
     AudioProcessorEditor* createEditor() override;
+
+    /** Creates and registers parameters */
+    void registerParameters();
     
     /** Emits an event whenever a ripple is detected */
     void process (AudioBuffer<float>& buffer) override;

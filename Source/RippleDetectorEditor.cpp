@@ -21,7 +21,7 @@ CustomTextBoxParameterEditor::CustomTextBoxParameterEditor(Parameter* param) : P
         valueTextBox = std::make_unique<Label>("Parameter value", param->getValue().toString());
 
     valueTextBox->setFont(Font("CP Mono", "Plain", 15));
-    valueTextBox->setName(param->getProcessor()->getName() + " (" + String(param->getProcessor()->getNodeId()) + ") - " + param->getName());
+    //valueTextBox->setName(param->getName() + " (" + String(param->getProcessor()->getNodeId()) + ") - " + param->getName());
     valueTextBox->setColour(Label::textColourId, Colours::white);
     valueTextBox->setColour(Label::backgroundColourId, Colours::grey);
     valueTextBox->setEditable(true);
@@ -77,38 +77,38 @@ RippleDetectorEditor::RippleDetectorEditor(GenericProcessor* parentNode)
 	desiredWidth = 460; //Plugin's desired width`
 
 	/* Ripple Detection Settings */
-	addSelectedChannelsParameterEditor("Ripple_Input", 10, 40);
+	addSelectedChannelsParameterEditor(Parameter::ParameterScope::STREAM_SCOPE, "Ripple_Input", 10, 40);
 
-	addComboBoxParameterEditor("Ripple_Out", 10, 70);
+	addComboBoxParameterEditor(Parameter::ParameterScope::STREAM_SCOPE, "Ripple_Out", 10, 70);
 
-	Parameter* param = getProcessor()->getParameter("ripple_std");
+	Parameter* param = getProcessor()->getStreamParameter("ripple_std");
     addCustomParameterEditor(new CustomTextBoxParameterEditor(param), 95, 25);
 
-	param = getProcessor()->getParameter("time_thresh");
+	param = getProcessor()->getStreamParameter("time_thresh");
     addCustomParameterEditor(new CustomTextBoxParameterEditor(param), 95, 50);
 
-	param = getProcessor()->getParameter("refr_time");
+	param = getProcessor()->getStreamParameter("refr_time");
     addCustomParameterEditor(new CustomTextBoxParameterEditor(param), 95, 75);
 
-	param = getProcessor()->getParameter("rms_samples");
+	param = getProcessor()->getStreamParameter("rms_samples");
     addCustomParameterEditor(new CustomTextBoxParameterEditor(param), 95, 100);
 
 	/* EMG / ACC Movement Detection Settings */
-	addComboBoxParameterEditor("mov_detect", 230, 20);
-	addSelectedChannelsParameterEditor("Mov_Input", 230, 65);
-	addComboBoxParameterEditor("Mov_Out", 230, 85);
+	addComboBoxParameterEditor(Parameter::ParameterScope::STREAM_SCOPE, "mov_detect", 230, 20);
+	addSelectedChannelsParameterEditor(Parameter::ParameterScope::STREAM_SCOPE, "Mov_Input", 230, 65);
+	addComboBoxParameterEditor(Parameter::ParameterScope::STREAM_SCOPE, "Mov_Out", 230, 85);
 
-	param = getProcessor()->getParameter("mov_std");
+	param = getProcessor()->getStreamParameter("mov_std");
     addCustomParameterEditor(new CustomTextBoxParameterEditor(param), 325, 25);
 
-	param = getProcessor()->getParameter("min_time_st");
+	param = getProcessor()->getStreamParameter("min_time_st");
     addCustomParameterEditor(new CustomTextBoxParameterEditor(param), 325, 50);
 
-	param = getProcessor()->getParameter("min_time_mov");
+	param = getProcessor()->getStreamParameter("min_time_mov");
     addCustomParameterEditor(new CustomTextBoxParameterEditor(param), 325, 75);
 
 	/* Calibration Button */
-	calibrateButton = std::make_unique<UtilityButton>("Calibrate", titleFont);
+	calibrateButton = std::make_unique<UtilityButton>("Calibrate");
 	calibrateButton->addListener(this);
     calibrateButton->setRadius(3.0f);
     calibrateButton->setBounds(335, 100, 100, 25);

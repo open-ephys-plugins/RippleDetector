@@ -21,20 +21,26 @@ TTLEventPtr RippleDetectorSettings::createEvent(int64 outputLine, int64 sample_n
 
 RippleDetector::RippleDetector() : GenericProcessor("Ripple Detector")
 {
+	ed = (RippleDetectorEditor*)getEditor();
+}
 
+void RippleDetector::registerParameters()
+{
 	/* Ripple Detection Settings */
 	addSelectedChannelsParameter(
 		Parameter::STREAM_SCOPE, 
 		"Ripple_Input", 
-		"The continuous channel to analyze", 
+		"Ripple Input",
+		"Continuous input channel on which ripples will be detected.",
 		1
 	);
 
 	addIntParameter(
 		Parameter::STREAM_SCOPE,
 		"Ripple_Out",
-		"The output TTL line",
-		1, 		//deafult
+		"Ripple Out",
+		"TTL line on which output events will be triggered",
+		1, 		//default
 		1, 		//min
 		16		//max
 	);
@@ -42,17 +48,21 @@ RippleDetector::RippleDetector() : GenericProcessor("Ripple Detector")
 	addFloatParameter(
 		Parameter::STREAM_SCOPE,
 		"ripple_std",
-		"Number of standard deviations above the average to be the amplitude threshold",
-		 5, 	//default 
-		 0, 	//min
-		 9999,  //max
-		 1  	//step
+		"Ripple Standard Deviation",
+		"Number of RMS standard deviations above the mean to calculate the amplitude threshold",
+		"",
+		5, 	//default 
+		0, 	//min
+		9999,  //max
+		1  	//step
 	);
 
     addFloatParameter(
 		Parameter::STREAM_SCOPE,
 		"time_thresh",
-		"time threshold value",
+		"Time Threshold",
+		"Minimum period (in ms) during which the RMS values must be above the amplitude threshold for ripples to be detected.",
+		"ms",
 		10,
 		0,
 		9999,
@@ -62,7 +72,9 @@ RippleDetector::RippleDetector() : GenericProcessor("Ripple Detector")
 	addFloatParameter(
 		Parameter::STREAM_SCOPE, 
 		"refr_time", 
-		"refractory value", 
+		"Refractory Time",
+		"The period (in ms) after each detection event in which new ripples cannot be detected.",
+		"ms",
 		140, 
 		0, 
 		999999,
@@ -72,7 +84,9 @@ RippleDetector::RippleDetector() : GenericProcessor("Ripple Detector")
     addFloatParameter(
 		Parameter::STREAM_SCOPE,
 		"rms_samples",
-		"rms samples value",
+		"RMS Samples",
+		"Number of samples used to calculate the RMS value",
+		"",
 		128,
 		1,
 		2048,
@@ -83,7 +97,10 @@ RippleDetector::RippleDetector() : GenericProcessor("Ripple Detector")
 	addCategoricalParameter(
 		Parameter::STREAM_SCOPE,
 		"mov_detect",
-		"Use movement to supress ripple detection",
+		"Movement Detection Mode",
+		"If OFF is selected, the mechanism of event blockage based on movement detection is disabled and ripples are not silenced. \ 
+		If ACC is selected, the RMS of all auxiliary channels are used to calculate the magnitude of the acceleration vector. \
+		If EMG is selected, an input channel is designated",
 		{ "OFF", "ACC", "EMG" },
 		0
 	);
@@ -91,14 +108,16 @@ RippleDetector::RippleDetector() : GenericProcessor("Ripple Detector")
 	addSelectedChannelsParameter(
 		Parameter::STREAM_SCOPE,
 		"mov_input",
-		"The continuous channel to analyze",
+		"Movement Input Chanenl Selection",
+		"the channel to use for movement detection (only affects EMG mode)",
 		1
 	);
 
 	addIntParameter(
 		Parameter::STREAM_SCOPE,
 		"mov_out",
-		"EMG/ACC output TTL channel: raise event when movement is detected and ripple detection is disabled",
+		"Movement Output Channel Selection",
+		"output TTL channel that indicates the period when ripple detection is silenced by movement (OFF if events are not blocked, 1 if events are blocked).",
 		1,
 		1,
 		16
@@ -107,7 +126,9 @@ RippleDetector::RippleDetector() : GenericProcessor("Ripple Detector")
 	addFloatParameter(
 		Parameter::STREAM_SCOPE,
 		"mov_std", 
+		"Movement Standard Deviation",
 		"Number of standard deviations above the average to be the amplitude threshold for the EMG/ACC",
+		"",
 		5, 
 		0,
 		9999,
@@ -117,7 +138,9 @@ RippleDetector::RippleDetector() : GenericProcessor("Ripple Detector")
     addFloatParameter(
 		Parameter::STREAM_SCOPE,
 		"min_time_st",
-		"Minimum time steady (in milliseconds). The minimum time below the EMG/ACC threshold to enable detection",
+		"Minimuym Time Steady",
+		"Minimum period (in ms) of immobility (RMS below the amplitude threshold) required to enable ripple detection again after movement is detected.",
+		"",
 		5000,
 		0,
 		999999,
@@ -127,14 +150,14 @@ RippleDetector::RippleDetector() : GenericProcessor("Ripple Detector")
 	addFloatParameter(
 		Parameter::STREAM_SCOPE,
 		"min_time_mov",
-		"Minimum time with movement (in milliseconds). The minimum time above the EMG/ACC threshold to disable detection",
+		"Minimum Time with Movement",
+		"Minimum period (in ms) during which the RMS values of EMG/accelerometer must be above the corresponding amplitude threshold for movement detection (and ripple silencing).",
+		"",
 		10,
 		0,
 		999999,
 		1
 	);
-
-	ed = (RippleDetectorEditor*)getEditor();
 }
 
 // Update settings
@@ -203,7 +226,7 @@ void RippleDetector::updateSettings()
 			getDataStream(stream->getStreamId())
 		};
 		eventChannels.add(new EventChannel(s));
-		eventChannels.getLast()->addProcessor(processorInfo.get());
+		eventChannels.getLast()->addProcessor(this);
 		settings[stream->getStreamId()]->eventChannel = eventChannels.getLast();
 
 	}
