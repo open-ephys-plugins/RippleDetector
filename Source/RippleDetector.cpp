@@ -98,7 +98,7 @@ void RippleDetector::registerParameters()
 		Parameter::STREAM_SCOPE,
 		"mov_detect",
 		"Movement Detect",
-		"If OFF is selected, the mechanism of event blockage based on movement detection is disabled and ripples are not silenced. \ 
+		"If OFF is selected, the mechanism of event blockage based on movement detection is disabled and ripples are not silenced. \
 		If ACC is selected, the RMS of all auxiliary channels are used to calculate the magnitude of the acceleration vector. \
 		If EMG is selected, an input channel is designated",
 		{ "OFF", "ACC", "EMG" },
