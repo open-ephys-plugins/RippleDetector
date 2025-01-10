@@ -53,7 +53,8 @@ public:
     int calibrationPoints;                    			//Total number of points that defines the calibration duration
     unsigned int counterMovUpThresh;        			//Accumulate the number of samples when RMS values for EMG/ACC are above threshold
     unsigned int counterMovDownThresh;        			//Accumulate the number of samples when RMS values for EMG/ACC are below threshold
-    std::vector<int> auxChannelIndices;        			//Contains the indices of aux channels. Useful for movement detector when "ACCEL" is selected
+    //std::vector<int> auxChannelIndices;        			//Contains the indices of aux channels. Useful for movement detector when "ACCEL" is selected
+    std::vector<int> movementChannels;                  //Holds the channels to be used for movement detection
 
     // RMS variables
     int rmsEndIdx;            							//The end index for RMS calculation windows
